@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Required Skills</th>
+            <th>Required Education</th>
+            <th>Required Experience</th>
+            <th>Actions</th>
+        </tr>
+        {% for job in jobs %}
+        <tr class="border-2 border-dark" onclick="viewJobpostInfo('{{job.id}}')">
+            <td>{{ job.id }}</td>
+            <td>{{ job.skill_required }}</td>
+            <td>{{ job.education_required }}</td>
+            <td>{{ job.experience_required }}</td>
+            <td>
+                <a href="delete_jobpost/{{job.id}}">Delete</a>
+                <a href="">Update</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

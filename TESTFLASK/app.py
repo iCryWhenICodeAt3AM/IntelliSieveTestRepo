@@ -113,7 +113,7 @@ def index():
                 db.session.add(jobposting)
                 db.session.commit()
                 db.session.close()
-                return redirect('/')
+                return redirect('/recruiter')
             except:
                 return "ERROR OCCURRED ADDING JOBPOST"
 
@@ -163,7 +163,7 @@ def delete_jobpost(id):
     try:
         db.session.delete(jobpost)
         db.session.commit()
-        return redirect('/')
+        return redirect('/recruiter')
     except:
         return "ERROR DELETING"
 
@@ -218,6 +218,25 @@ def experience_json():
     experiences = Experience.query.all()
     experiences_json = [{'id': exp.id, 'years': exp.years} for exp in experiences]
     return jsonify(experiences_json)
+
+
+
+
+@app.route('/recruiter')
+def recruiter():
+    jobs = JobPosting.query.all()
+    return render_template('recruiter.html', jobposts=jobs)
+
+@app.route('/jobpost')
+def jobpost():
+    return render_template('jobpost.html')
+
+@app.route('/jobpostinfo')
+def jobpostinfo():
+    id = request.args.get('id')
+    jobs = JobPosting.query.filter(JobPosting.id == id).all()
+    return render_template('jobpostinfo.html', jobs=jobs)
+
 
 with app.app_context():
     db.create_all()
