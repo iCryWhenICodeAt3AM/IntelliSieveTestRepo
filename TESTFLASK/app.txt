@@ -1,0 +1,87 @@
+from flask import Flask, render_template, request, redirect
+from flask_sqlalchemy import SQLAlchemy
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///resume.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+
+
+class Education(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    degree = db.Column(db.String(100), nullable=False)
+    school = db.Column(db.String(100), nullable=False)
+    graduation_date = db.Column(db.String(20), nullable=False)
+
+    def __repr__(self):
+        return f'<Education {self.id}: {self.degree} at {self.school}>'
+
+
+class Skill(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+
+    def __repr__(self):
+        return f'<Skill {self.id}: {self.name}>'
+
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        if all(key in request.form and request.form[key] != "" for key in ["degree", "school", "graduation_date"]) and (
+                'skill' in request.form and request.form['skill'] != ""):
+            degree = request.form['degree']
+            school = request.form['school']
+            graduation_date = request.form['graduation_date']
+
+            try:
+                education = Education(degree=degree, school=school, graduation_date=graduation_date)
+                db.session.add(education)
+                db.session.commit()
+                db.session.close()
+            except:
+                return "ERROR OCCURRED"
+
+            skill_name = request.form['skill']
+            skill = Skill(name=skill_name)
+
+            try:
+                db.session.add(skill)
+                db.session.commit()
+                db.session.close()
+            except:
+                return "ERROR OCCURRED"
+
+        return redirect('/')
+
+    else:
+        educations = Education.query.all()
+        skills = Skill.query.all()
+        return render_template('index.html', educations=educations, skills=skills)
+
+
+
+@app.route('/delete_education/<int:id>')
+def delete_education(id):
+    education = Education.query.get(id)
+    try:
+        db.session.delete(education)
+        db.session.commit()
+        return redirect('/')
+    except:
+        return "ERROR DELETING"
+
+
+@app.route('/delete_skill/<int:id>')
+def delete_skill(id):
+    skill = Skill.query.get(id)
+    try:
+        db.session.delete(skill)
+        db.session.commit()
+        return redirect('/')
+    except:
+        return "ERROR DELETING"
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
