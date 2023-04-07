@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import re
 
+from sqlalchemy import text, update
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///resume.db'
@@ -41,7 +42,11 @@ class JobPosting(db.Model):
     skill_required = db.Column(db.String(100), nullable=False)
     education_required = db.Column(db.String(100), nullable=True)
     experience_required = db.Column(db.String(100), nullable=True)
-    
+    job_title = db.Column(db.String(100), nullable=True)
+    company = db.Column(db.String(100), nullable=True)
+    job_description = db.Column(db.String(100), nullable=True)
+    recommended = db.Column(db.String(100), nullable=True)
+
     def __repr__(self):
         return f'<JobPosting {self.id}: skill required: {self.skill_required}: education required: {self.education_required}: experiencece required: {self.experience_required}>'
 
@@ -107,13 +112,16 @@ def index():
             skills = request.form['jobpost_skills']
             education_required = request.form['jobpost_education']
             experience_required = request.form['jobpost_experience']
-
+            company = request.form['jobpost_company']
+            job_title = request.form['jobpost_title']
+            job_description = request.form['jobpost_description']
             try:
-                jobposting = JobPosting(skill_required=skills, education_required=education_required, experience_required=experience_required)
+                jobposting = JobPosting(skill_required=skills, education_required=education_required, experience_required=experience_required, job_title=job_title, company=company,job_description=job_description)
                 db.session.add(jobposting)
                 db.session.commit()
                 db.session.close()
-                return redirect('/')
+                getPercentage()  # to get the scores first and also add it to the list
+                return redirect('/home')
             except:
                 return "ERROR OCCURRED ADDING JOBPOST"
 
@@ -163,7 +171,7 @@ def delete_jobpost(id):
     try:
         db.session.delete(jobpost)
         db.session.commit()
-        return redirect('/')
+        return redirect('/recruiter')
     except:
         return "ERROR DELETING"
 
@@ -218,6 +226,118 @@ def experience_json():
     experiences = Experience.query.all()
     experiences_json = [{'id': exp.id, 'years': exp.years} for exp in experiences]
     return jsonify(experiences_json)
+
+
+
+
+@app.route('/recruiter')
+def recruiter():
+    jobs = JobPosting.query.all()
+    return render_template('recruiter.html', jobposts=jobs)
+
+@app.route('/jobpost')
+def jobpost():
+    return render_template('jobpost.html')
+
+@app.route('/jobpostinfo')
+def jobpostinfo():
+    id = request.args.get('id')
+    jobs = JobPosting.query.filter(JobPosting.id == id).all()
+    return render_template('jobpostinfo.html', jobs=jobs)
+
+@app.route('/home')
+def home():
+    jobs = JobPosting.query.order_by(JobPosting.id.desc()).all() #change by date_time later
+    return render_template('index1.html', jobs=jobs)
+
+@app.route('/jobs_posted')
+def jobs_posted():
+    id = request.args.get('id')
+    jobs = JobPosting.query.filter(JobPosting.id == id).all()
+    return render_template('jobs_posted.html', jobs=jobs)
+
+
+def getPercentage():
+    last_job_posting = JobPosting.query.order_by(JobPosting.id.desc()).first()
+    required_skills = last_job_posting.skill_required
+    required_education = last_job_posting.education_required
+    required_experience = last_job_posting.experience_required
+    print(required_education)
+    print(required_skills)
+    print(required_experience)
+    result = db.session.execute(text(
+        'SELECT experience.id, education.degree, skill.name, experience.years FROM experience INNER JOIN skill ON experience.id = skill.id INNER JOIN education ON experience.id = education.id')).fetchall()
+
+    percentage_list = []
+
+    for row in result:
+        id = row[0]
+        degree = row[1]
+        name = row[2]
+        years = row[3]
+
+        # Compare required education with degree per id
+        req_educations = set(required_education.split(','))
+        matched_educations = [edu.strip() for edu in req_educations if edu.strip() in degree]
+        education_percentage = (len(matched_educations) / len(req_educations)) * 100
+
+        # Compare required skills with name per id
+        req_skills = set(required_skills.split(','))
+        matched_skills = [skill.strip() for skill in req_skills if skill.strip() in name]
+        skills_percentage = (len(matched_skills) / len(req_skills)) * 100
+
+        # # Compare required experience with years per id
+        # req_experiences = required_experience.split(',')
+        # print(req_experiences)
+        # matched_counter = 0
+        # for req_exp in req_experiences:
+        #     req_jobtitle, req_years = req_exp.split(':')
+        #     req_years = req_years.replace(' years', '').replace(' year', '')
+        #     years = years.replace(' years', '').replace('Years:', '').replace(' year', '').split(',')
+        #     for year in years:
+        #         nName, nYear = year.split(':')
+        #         print(nName, nYear, req_jobtitle, req_years)
+        #         if req_jobtitle.strip() == nName.strip() and int(nYear) >= int(req_years.strip()):
+        #             matched_counter += 1
+        #
+        #     print("Done Loop.")
+        #
+        #     experience_percentage = (matched_counter / len(req_experiences)) * 100
+        overall = (education_percentage + skills_percentage) / 2
+        print(f"ID: {id}\nDegree: {degree}\nName: {name}\nYears: {years}\nEducation Percentage: {education_percentage}%\nSkills Percentage: {skills_percentage}%\nExperience Percentage: N/A\nOverall Percentage: {overall}%\n")
+
+        percentage_list.append((id, round(education_percentage), round(skills_percentage), round(overall)))
+
+    # Get the last job posting ID
+    last_job_posting = JobPosting.query.order_by(JobPosting.id.desc()).first()
+    last_job_posting_id = last_job_posting.id
+
+    # # Convert percentage_list to JSON string
+    sorted_list = sorted(percentage_list, key=lambda x: x[3], reverse=True)
+    percentage_list_json = json.dumps(sorted_list)
+    #
+    # # Convert percentage_list_json back to a dictionary
+    # percentage_list_dict = json.loads(percentage_list_json)
+
+    # Get the row to update
+    job_posting = db.session.query(JobPosting).filter_by(id=last_job_posting_id).one()
+
+    # Update the recommended column
+    job_posting.recommended = percentage_list_json
+
+    # Commit the changes
+    db.session.commit()
+    # Checking the values of the column recommended
+    # job_posting = JobPosting.query.get(last_job_posting.id)
+    # print(job_posting.recommended)
+
+    for row in percentage_list:
+        id = row[0]
+        education_percentage = row[1]
+        skills_percentage = row[2]
+        overall_percentage = row[3]
+        print(
+            f"ID: {id}\nEducation Percentage: {education_percentage}%\nSkills Percentage: {skills_percentage}%\nOverall Percentage: {overall_percentage}%\n")
 
 with app.app_context():
     db.create_all()

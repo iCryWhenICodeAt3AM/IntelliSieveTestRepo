@@ -85,7 +85,7 @@
                             </a>
                         </li>
                         <br><br><br>
-                        <button type="button" class="btn btn-outline-dark mt-5"><span><svg
+                        <button type="button" class="btn btn-outline-dark mt-5" onclick="redirectToJobpost()"><span><svg
                                     xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                                     class="bi bi-plus-lg" viewBox="0 0 16 16">
                                     <path fill-rule="evenodd"
@@ -124,8 +124,9 @@
 
                 <p class="lead">Recent</p>
 
+                {% for job in jobs %}
                 <!-- job cards -->
-                <a href="jobs_posted">
+                <a href="jobs_posted?id={{ job.id }}">
                     <div class="card mt-3 job-card">
                         <div class="row no-gutters">
                             <div class="col-sm-2">
@@ -133,17 +134,9 @@
                             </div>
                             <div class="col-sm-7">
                                 <div class="card-body">
-                                    <h5 class="card-title">Web Developer</h5>
-                                    <p class="lead">Company XYZ</p>
-                                    <p class="card-text text-truncate">We are seeking a talented and
-                                        experienced Software
-                                        Engineer
-                                        to join our dynamic team. The successful candidate will be responsible for
-                                        developing
-                                        and
-                                        maintaining
-                                        web applications, with a focus on delivering high-quality and scalable
-                                        solutions...
+                                    <h5 class="card-title">{{ job.job_title }}</h5>
+                                    <p class="lead">{{ job.company }}</p>
+                                    <p class="card-text text-truncate">{{ job.job_description }}
                                     </p>
                                 </div>
                             </div>
@@ -161,82 +154,8 @@
                         </div>
                     </div>
                 </a>
-
-                <div class="card mt-3 job-card">
-                    <div class="row no-gutters">
-                        <div class="col-sm-2">
-                            <img class="card-img" src="{{ url_for('static', filename='assets/company XYZ.png') }}" alt="Company XYZ logo" width="32px">
-                        </div>
-                        <div class="col-sm-7">
-                            <div class="card-body">
-                                <h5 class="card-title">Web Developer</h5>
-                                <p class="lead">Company XYZ</p>
-                                <p class="card-text text-truncate">We are seeking a talented and
-                                    experienced Software
-                                    Engineer
-                                    to join our dynamic team. The successful candidate will be responsible for
-                                    developing
-                                    and
-                                    maintaining
-                                    web applications, with a focus on delivering high-quality and scalable
-                                    solutions...
-                                </p>
-                            </div>
-                        </div>
-                        <div class="col-sm-3">
-                            <div class="card-body">
-                                <div class="row text-end">
-                                    <p class="lead">3d ago</p>
-                                </div>
-                                <div class="row text-end">
-                                    <p>48 applicants</p>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card mt-3 job-card">
-                    <div class="row no-gutters">
-                        <div class="col-sm-2">
-                            <img class="card-img" src="{{ url_for('static', filename='assets/company XYZ.png') }}" alt="Company XYZ logo" width="32px">
-                        </div>
-                        <div class="col-sm-7">
-                            <div class="card-body">
-                                <h5 class="card-title">Web Developer</h5>
-                                <p class="lead">Company XYZ</p>
-                                <p class="card-text text-truncate">We are seeking a talented and
-                                    experienced Software
-                                    Engineer
-                                    to join our dynamic team. The successful candidate will be responsible for
-                                    developing
-                                    and
-                                    maintaining
-                                    web applications, with a focus on delivering high-quality and scalable
-                                    solutions...
-                                </p>
-                            </div>
-                        </div>
-                        <div class="col-sm-3">
-                            <div class="card-body">
-                                <div class="row text-end">
-                                    <p class="lead">3d ago</p>
-                                </div>
-                                <div class="row text-end">
-                                    <p>48 applicants</p>
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
-                <br>
-                <p class="lead">Recommended</p>
-
                 <!-- job seeker cards -->
-
+                {% endfor %}
                 <div class="row">
                     <div class="col-lg-3">
                         <div class="card" style="width: 12rem;height: 12rem;">

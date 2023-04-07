@@ -1,0 +1,32 @@
+/* a */
+a {
+    text-decoration: none;
+}
+
+/* side bar */
+.nav-link.active {
+    background-color: black !important;
+}
+
+.nav-link:not(.active):hover {
+    background-color: #c1c1c1 !important;
+}
+
+/* job card */
+.job-card {
+    transition: all 0.2s ease-in-out;
+}
+
+.job-card:hover {
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    transform: translateY(-5px);
+}
+
+.job-card.clicked {
+    background-color: #e5e5e5;
+}
+
+/* stats card */
+.counter {
+    animation: count-up 1s ease-out forwards;
+}

@@ -113,8 +113,10 @@
 							<th>Required Skills</th>
 							<th>Required Education</th>
 							<th>Required Experience</th>
+							<th>Company</th>
+							<th>Job Position</th>
+							<th>Job Description</th>
 							<th>Actions</th>
-
 						</tr>
 						{% for jobpost in jobposts %}
 						<tr>
@@ -122,6 +124,9 @@
 							<td>{{ jobpost.skill_required }}</td>
 							<td>{{ jobpost.education_required }}</td>
 							<td>{{ jobpost.experience_required }}</td>
+							<td>{{ jobpost.company }}</td>
+							<td>{{ jobpost.job_title }}</td>
+							<td>{{ jobpost.job_description }}</td>
 							<td>
 								<a href="delete_jobpost/{{jobpost.id}}">Delete</a>
 								<a href="">Update</a>
